@@ -1,0 +1,21 @@
+-- Enable the uuid-ossp extension (needed for uuid_generate_v4)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Drop tables if they exist
+DROP TABLE IF EXISTS term_frequency CASCADE;
+DROP TABLE IF EXISTS documents CASCADE;
+
+-- Create documents table with auto-generated UUID, total_words, and created_at
+CREATE TABLE documents (
+    doc_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_text TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Create term_frequency table storing word directly
+CREATE TABLE term_frequency (
+    doc_id UUID REFERENCES documents(doc_id) ON DELETE CASCADE,
+    word TEXT NOT NULL,
+    word_frequency INT NOT NULL,
+    PRIMARY KEY (doc_id, word)
+);
