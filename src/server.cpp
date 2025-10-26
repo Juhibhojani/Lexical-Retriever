@@ -3,10 +3,11 @@
 #include "controller/document_controller.h"
 #include "db_connection.h"
 #include <cstring>
+#include "models/idf_table.h"
+#include "utils/idf_updater.h"
 
-
-#define PASSWORD password
-#define USERNAME username
+#define PASSWORD "password"
+#define USERNAME "juhi"
 #define PORT 8080
 
 int main() {
@@ -17,6 +18,20 @@ int main() {
         std::cerr << "Failed to connect to DB" << std::endl;
         return 1;
     }
+
+    // initializing a global idf_table which will be used everywhere
+    IDFTable global_idf_table;
+
+    // initializing thread for background processing
+    pthread_t idf_thread;
+
+    if (pthread_create(&idf_thread, nullptr, idf_updater_thread, &global_idf_table) != 0) {
+        std::cerr <<"Unable to start IDF updater thread\n";
+        return 1;
+    }
+
+    // Detach the thread
+    pthread_detach(idf_thread);
 
     // initializing document_handler for handling all incoming requests
     DocumentController doc_handler(&db_conn);

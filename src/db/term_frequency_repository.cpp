@@ -18,6 +18,7 @@ bool TermFrequencyRepository::insert_term_frequencies_bulk(
 
     for (const auto& tf : term_frequencies) {
         const char* params[3] = {
+            // c_str is a constant character pointer to the string object
             tf.doc_id.c_str(),
             tf.word.c_str(),
             std::to_string(tf.word_frequency).c_str()
@@ -46,41 +47,32 @@ bool TermFrequencyRepository::insert_term_frequencies_bulk(
     return all_success;
 }
 
+// Retrieve word vs document count 
+std::vector<IDFStats> TermFrequencyRepository::get_all_idf_stats() {
+    std::vector<IDFStats> results;
 
-// Retrieve WordStats for a set of query words
-std::vector<WordStats> TermFrequencyRepository::get_word_stats_for_query(
-    const std::vector<std::string>& words)
-{
-    // return when there are no words or not valid connection
-    std::vector<WordStats> results;
-    if (!db || !db->is_connected() || words.empty()) return results;
+    // Validate DB connection
+    if (!db || !db->is_connected()) return results;
 
-    // Build query with IN clause
-    std::string query = "SELECT tf.word, tf.doc_id, tf.word_frequency, d.total_words "
-                        "FROM term_frequency tf "
-                        "JOIN documents d ON tf.doc_id = d.doc_id "
-                        "WHERE tf.word IN (";
+    // Query to count number of documents per word
+    std::string query =
+        "SELECT word, COUNT(DISTINCT doc_id) AS document_count "
+        "FROM term_frequency "
+        "GROUP BY word;";
 
-    for (size_t i = 0; i < words.size(); ++i) {
-        if (i > 0) query += ",";
-        query += "'" + words[i] + "'";
-    }
-    query += ");";
-
+    // Execute query using your DB wrapper
     PGresult* res = db->execute_query(query);
     if (!res) return results;
 
+    // Parse results
     int n = PQntuples(res);
     for (int i = 0; i < n; ++i) {
         results.push_back({
-            PQgetvalue(res, i, 0),                     // word
-            PQgetvalue(res, i, 1),                     // doc_id
-            std::stoi(PQgetvalue(res, i, 2)),          // word_frequency
-            std::stoi(PQgetvalue(res, i, 3))           // total_words
+            PQgetvalue(res, i, 0),           // word
+            std::stoi(PQgetvalue(res, i, 1)) // document_count
         });
     }
 
     PQclear(res);
     return results;
 }
-

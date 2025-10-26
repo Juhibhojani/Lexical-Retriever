@@ -24,6 +24,7 @@ file(GLOB_RECURSE SERVER_SOURCES
     src/service/*.cpp
     src/repository/*.cpp
     src/utils/*.cpp
+    src/models/*.cpp
 )
 
 

@@ -3,7 +3,8 @@
 #include <vector>
 #include "db_connection.h"
 #include "../models/term_frequency.h" 
-#include "../models/word_stats.h"     
+#include "../models/word_stats.h"
+#include "../models/idf_stats.h"     
 
 class TermFrequencyRepository {
 
@@ -18,4 +19,7 @@ public:
 
     // Retrieve WordStats for a set of query words (used for TF-IDF scoring)
     std::vector<WordStats> get_word_stats_for_query(const std::vector<std::string>& words);
+
+    // fetch idf stats (word,count of docs)
+    std::vector<IDFStats> get_all_idf_stats();
 };
