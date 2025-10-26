@@ -47,6 +47,40 @@ bool TermFrequencyRepository::insert_term_frequencies_bulk(
     return all_success;
 }
 
+// Retrieve TermFrequency for a set of query words
+std::vector<TermFrequency> TermFrequencyRepository::get_word_stats_for_query(
+    const std::vector<std::string>& words)
+{
+    std::vector<TermFrequency> results;
+    if (!db || !db->is_connected() || words.empty()) return results;
+
+    // Build query with IN clause
+    std::string query = "SELECT word, doc_id, word_frequency "
+                        "FROM term_frequency "
+                        "WHERE word IN (";
+
+    for (size_t i = 0; i < words.size(); ++i) {
+        if (i > 0) query += ",";
+        query += "'" + words[i] + "'";
+    }
+    query += ");";
+
+    PGresult* res = db->execute_query(query);
+    if (!res) return results;
+
+    int n = PQntuples(res);
+    for (int i = 0; i < n; ++i) {
+        results.push_back({
+            PQgetvalue(res, i, 1),                       // word
+            PQgetvalue(res, i, 0),                       // doc_id
+            std::stof(PQgetvalue(res, i, 2))             // word_frequency
+        });
+    }
+
+    PQclear(res);
+    return results;
+}
+
 // Retrieve word vs document count 
 std::vector<IDFStats> TermFrequencyRepository::get_all_idf_stats() {
     std::vector<IDFStats> results;

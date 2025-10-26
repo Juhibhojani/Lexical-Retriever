@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include "controller/document_controller.h"
+#include "controller/search_controller.h"
 #include "db_connection.h"
 #include <cstring>
 #include "models/idf_table.h"
@@ -36,6 +37,8 @@ int main() {
     // initializing document_handler for handling all incoming requests
     DocumentController doc_handler(&db_conn);
 
+    SearchController search_handler(&db_conn,&global_idf_table);
+
     std::vector<std::string> cpp_options = {
         "document_root", ".", 
         "listening_ports",  std::to_string(PORT)
@@ -44,6 +47,7 @@ int main() {
 	CivetServer server(cpp_options);
 
 	server.addHandler("/documents", doc_handler);
+    server.addHandler("/search", search_handler);
 
     std::cout << "Server running on port 8080...\n";
     std::cout << "Press Enter to stop.\n";
