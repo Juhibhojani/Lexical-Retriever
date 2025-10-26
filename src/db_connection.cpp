@@ -89,3 +89,24 @@ void DBConnection::test_connection() {
 PGconn* DBConnection::get_conn() const {
     return conn;
 }
+
+bool DBConnection::begin_transaction() {
+    PGresult* res = execute_query("BEGIN;");
+    if (!res) return false;
+    PQclear(res);
+    return true;
+}
+
+bool DBConnection::commit() {
+    PGresult* res = execute_query("COMMIT;");
+    if (!res) return false;
+    PQclear(res);
+    return true;
+}
+
+bool DBConnection::rollback() {
+    PGresult* res = execute_query("ROLLBACK;");
+    if (!res) return false;
+    PQclear(res);
+    return true;
+}

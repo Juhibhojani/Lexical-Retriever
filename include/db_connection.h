@@ -29,5 +29,10 @@ public:
     PGconn* get_conn() const; 
 
     void test_connection(); // dummy method to test connection
+
+    // methods to manipulate transactions
+    bool begin_transaction();
+    bool commit();
+    bool rollback();
 };
 

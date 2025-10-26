@@ -20,13 +20,13 @@ bool TermFrequencyRepository::insert_term_frequencies_bulk(
         const char* params[3] = {
             tf.doc_id.c_str(),
             tf.word.c_str(),
-            std::to_string(tf.word_count).c_str()
+            std::to_string(tf.word_frequency).c_str()
         };
 
         PGresult* res = PQexecParams(db->get_conn(),
-            "INSERT INTO term_frequency (doc_id, word, word_count) "
+            "INSERT INTO term_frequency (doc_id, word, word_frequency) "
             "VALUES (CAST($1 AS UUID), $2, $3) "
-            "ON CONFLICT (doc_id, word) DO UPDATE SET word_count = EXCLUDED.word_count;",
+            "ON CONFLICT (doc_id, word) DO UPDATE SET word_frequency = EXCLUDED.word_frequency;",
             3,          // number of parameters
             nullptr,   
             params,
@@ -56,7 +56,7 @@ std::vector<WordStats> TermFrequencyRepository::get_word_stats_for_query(
     if (!db || !db->is_connected() || words.empty()) return results;
 
     // Build query with IN clause
-    std::string query = "SELECT tf.word, tf.doc_id, tf.word_count, d.total_words "
+    std::string query = "SELECT tf.word, tf.doc_id, tf.word_frequency, d.total_words "
                         "FROM term_frequency tf "
                         "JOIN documents d ON tf.doc_id = d.doc_id "
                         "WHERE tf.word IN (";
@@ -75,7 +75,7 @@ std::vector<WordStats> TermFrequencyRepository::get_word_stats_for_query(
         results.push_back({
             PQgetvalue(res, i, 0),                     // word
             PQgetvalue(res, i, 1),                     // doc_id
-            std::stoi(PQgetvalue(res, i, 2)),          // word_count
+            std::stoi(PQgetvalue(res, i, 2)),          // word_frequency
             std::stoi(PQgetvalue(res, i, 3))           // total_words
         });
     }

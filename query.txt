@@ -16,6 +16,6 @@ CREATE TABLE documents (
 CREATE TABLE term_frequency (
     doc_id UUID REFERENCES documents(doc_id) ON DELETE CASCADE,
     word TEXT NOT NULL,
-    word_frequency INT NOT NULL,
+    word_frequency REAL NOT NULL,
     PRIMARY KEY (doc_id, word)
 );
