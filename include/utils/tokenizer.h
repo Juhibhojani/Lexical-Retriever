@@ -6,5 +6,9 @@
 
 class Tokenizer {
 public:
-    static std::vector<TermFrequency> tokenize_and_compute(const std::string& doc_id, const std::string& text);
+    // Tokenize the input text into cleaned words
+    static std::vector<std::string> tokenize(const std::string &text);
+
+    // Tokenize the input and compute term frequencies
+    static std::vector<TermFrequency> tokenize_and_compute(const std::string &doc_id, const std::string &text);
 };

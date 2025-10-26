@@ -10,7 +10,6 @@ target/
 
 # CMake related files
 CMakeCache.txt
-CMakeLists.txt
 compilation.txt
 test_db
 CMakeFiles/

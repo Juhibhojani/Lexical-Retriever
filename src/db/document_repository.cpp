@@ -98,6 +98,15 @@ bool DocumentRepository::delete_document(const std::string &doc_id) {
     std::string query = "DELETE FROM documents WHERE doc_id = '" + doc_id + "';";
     PGresult* res = db->execute_query(query);
     if (!res) return false;
+    
+    int affected_rows = std::stoi(PQcmdTuples(res));
+    if (affected_rows == 0) {
+        std::cerr << "No document found with doc_id: " << doc_id << std::endl;
+        PQclear(res);
+        return false;
+    }
+
+    std::cout << "Deleted " << affected_rows << " document(s) with doc_id: " << doc_id << std::endl;
 
     PQclear(res);
     return true;
