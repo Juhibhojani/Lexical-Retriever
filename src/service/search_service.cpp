@@ -1,5 +1,6 @@
 #include "service/search_service.h"
 #include "utils/tokenizer.h"
+#include "utils/cache_manager.h"
 #include <algorithm>
 #include <iostream>
 
@@ -13,21 +14,49 @@ std::vector<SearchResult> SearchService::search(const std::string& query, int to
     std::vector<SearchResult> results;
     if (tokens.empty()) return results;
 
-    // use cache here first then go to database
+    auto &tf_cache = CacheManager::termFrequencyCache();
 
-    // Get term frequency records for query words
-    auto tf_records = tf_repo_->get_word_stats_for_query(tokens);
-    if(tf_records.empty()){
-        std::cout << "No TF records found for query tokens." << std::endl;
-        return results;
+    std::vector<TermFrequency> tf_records;
+    std::vector<std::string> missed_tokens;
+
+    // checking if it exists in cache or not for each token
+    for (const auto &token : tokens)
+    {
+        auto cached_val = tf_cache.get(token);
+
+        // cache hit
+        if (cached_val.has_value())
+        {
+            const auto &cached_vec = cached_val.value();
+            std::cout << token << "found in cache" << std::endl;
+            for (const auto &pair : cached_vec)
+            {
+                // converting to required structure
+                tf_records.push_back({pair.first, token, pair.second});
+            }
+        }
+        else // cache miss
+        {
+            missed_tokens.push_back(token);
+        }
     }
+    // add tokens into cache
+    if (!missed_tokens.empty())
+    {
+        auto db_records = tf_repo_->get_word_stats_for_query(missed_tokens);
+        tf_records.insert(tf_records.end(), db_records.begin(), db_records.end());
 
-    std::cout << "TF Records fetched:" << std::endl;
-    for (const auto& rec : tf_records) {
-        std::cout << "doc_id: " << rec.doc_id 
-                << ", word: " << rec.word 
-                << ", word_frequency: " << rec.word_frequency 
-                << std::endl;
+        std::unordered_map<std::string, std::vector<std::pair<std::string, float>>> temp_cache;
+
+        for (const auto &rec : db_records)
+        {
+            temp_cache[rec.word].push_back(std::make_pair(rec.doc_id, rec.word_frequency));
+        }
+
+        for (auto &[word, vec] : temp_cache)
+        {
+            tf_cache.put(word, vec);
+        }
     }
 
     // Map: doc_id -> total TF-IDF score
@@ -57,16 +86,29 @@ std::vector<SearchResult> SearchService::search(const std::string& query, int to
     });
     if (sorted_docs.size() > top_k) sorted_docs.resize(top_k);
 
-    // use cache here first, then go to database
+    auto &doc_cache = CacheManager::documentCache();
 
     // Fetch document text for top_k only
     for (auto& [doc_id, avg_score] : sorted_docs) {
-        std::cout << doc_id << std::endl;
-        auto doc_opt = doc_repo_->get_document_by_id(doc_id);
-        std::string text = doc_opt.has_value() ? doc_opt->document_text : "";
+        std::string text;
+        // check if it exists in cache
+        auto cached_doc = doc_cache.get(doc_id);
+        if (cached_doc.has_value())
+        {
+            text = cached_doc.value();
+            std::cout << "While searching " << doc_id << " found in cache" << std::endl;
+        }
+        else
+        {
+            auto doc_opt = doc_repo_->get_document_by_id(doc_id);
+            if (doc_opt.has_value())
+            {
+                text = doc_opt->document_text;
+                doc_cache.put(doc_id, text);
+            }
+            std::cout << "While searching " << doc_id << " was put into cache" << std::endl;
+        }
         results.push_back({doc_id, avg_score, text});
     }
-    std::cout << results.size() <<std::endl;
-
     return results;
 }

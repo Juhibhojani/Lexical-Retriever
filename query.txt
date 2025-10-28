@@ -19,3 +19,8 @@ CREATE TABLE term_frequency (
     word_frequency REAL NOT NULL,
     PRIMARY KEY (doc_id, word)
 );
+
+-- Index to quickly find all docs containing a specific word
+CREATE INDEX idx_term_frequency_word 
+ON term_frequency (word);
+

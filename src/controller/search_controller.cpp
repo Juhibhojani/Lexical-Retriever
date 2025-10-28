@@ -3,7 +3,9 @@
 #include "db/term_frequency_repository.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <chrono> // for timing
 
+using namespace std::chrono;
 using json = nlohmann::json;
 
 // constructor to initialize the connection object
@@ -40,9 +42,19 @@ bool SearchController::handlePost(CivetServer* server, struct mg_connection* con
     DocumentRepository doc_repo(db_conn);
     TermFrequencyRepository tf_repo(db_conn);
     SearchService search_service(&doc_repo, &tf_repo, idf_table);
+
+    // Record start time
+    auto start = high_resolution_clock::now();
+
     auto results = search_service.search(query);
 
-    std::cout<< "inside conttoller"<<results.size() << std::endl;
+    // Record end time
+    auto end = high_resolution_clock::now();
+
+    // Compute duration in milliseconds
+    auto duration = duration_cast<milliseconds>(end - start);
+
+    std::cout << "Execution time: " << duration.count() << std::endl;
 
     json j_resp;
 
@@ -50,8 +62,9 @@ bool SearchController::handlePost(CivetServer* server, struct mg_connection* con
     if (results.empty()) {
         j_resp["results"] = json::array();
         j_resp["message"] = "No documents found";
-    } else {
-        std::cout << "inside else" << std::endl;
+    }
+    else
+    {
         json arr = json::array();
         for (auto& r : results) {
             json obj;
@@ -70,10 +83,11 @@ bool SearchController::handlePost(CivetServer* server, struct mg_connection* con
     std::cout << response_str << std::endl;
 
     mg_printf(conn,
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: application/json\r\n"
-            "Content-Length: %zu\r\n\r\n%s",
-            response_str.size(), response_str.c_str());
+              "HTTP/1.1 200 OK\r\n"
+              "Content-Type: application/json\r\n"
+              "Content-Length: %zu\r\n"
+              "Connection: close\r\n\r\n%s",
+              response_str.size(), response_str.c_str());
 
     return true;
 }

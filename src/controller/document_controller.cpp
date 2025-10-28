@@ -4,7 +4,9 @@
 #include <cstring>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <chrono> // for timing
 using json = nlohmann::json;
+using namespace std::chrono;
 
 // constructor to initialize the connection object
 DocumentController::DocumentController(DBConnection *conn)
@@ -103,9 +105,21 @@ bool DocumentController::handleGet(CivetServer* server, mg_connection* conn) {
     TermFrequencyRepository tf_repo(db_conn);
     DocumentService service(&doc_repo, &tf_repo, db_conn);
 
+    // Record start time
+    auto start = high_resolution_clock::now();
+
     auto doc_opt = service.get_document_by_id(doc_id);
 
-   if (!doc_opt) {
+    // Record end time
+    auto end = high_resolution_clock::now();
+
+    // Compute duration in milliseconds
+    auto duration = duration_cast<milliseconds>(end - start);
+
+    std::cout << "Execution time: " << duration.count() << std::endl;
+
+    if (!doc_opt)
+    {
         mg_printf(conn,
                   "HTTP/1.1 404 Not Found\r\n"
                   "Content-Type: application/json\r\n"
