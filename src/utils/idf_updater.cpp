@@ -6,6 +6,7 @@
 #include <unistd.h> // for sleep
 #include <cmath>
 #include <iostream>
+#include <dotenv.h>
 
 // sleep takes seconds as input, let's run it every 15 mins i.e. 15*60
 #define SLEEP_TIME 100
@@ -14,8 +15,9 @@
 void* idf_updater_thread(void* arg){
     // casting argument passed into idf_table pointer
     IDFTable* idf_table = static_cast<IDFTable*>(arg);
-    // to-do : env file
-    DBConnection db_conn("lexical_retriever", "juhi", "password");
+    dotenv::init("../../.env");
+
+    DBConnection db_conn(dotenv::getenv("DATABASE_NAME"), dotenv::getenv("USERNAME"), dotenv::getenv("PASSWORD"));
 
     // initialize document repository and term_frequency repository
     DocumentRepository doc_repo_(&db_conn);
@@ -47,7 +49,7 @@ void* idf_updater_thread(void* arg){
         }
 
         std::cout << "Done sleeping now!" << std::endl;
-        sleep(SLEEP_TIME);
+        sleep(std::stoi(dotenv::getenv("SLEEP_TIME")));
         // sleep
     }
 

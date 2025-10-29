@@ -6,15 +6,14 @@
 #include <cstring>
 #include "models/idf_table.h"
 #include "utils/idf_updater.h"
-
-#define PASSWORD "password"
-#define USERNAME "juhi"
-#define PORT 8080
+#include <dotenv.h>
 
 int main() {
-    // to-do : read values from enviornment variables
+    dotenv::init("../.env");
+    std::cout << "Getting value from dotenv: " << dotenv::getenv("PASSWORD") << std::endl;
+
     // Connecting to database and keeping a single connection instance throughout the application
-    DBConnection db_conn("lexical_retriever",USERNAME, PASSWORD);
+    DBConnection db_conn(dotenv::getenv("DATABASE_NAME"), dotenv::getenv("USERNAME"), dotenv::getenv("PASSWORD"));
     if (!db_conn.is_connected()) {
         std::cerr << "Failed to connect to DB" << std::endl;
         return 1;
@@ -40,13 +39,12 @@ int main() {
     SearchController search_handler(&db_conn,&global_idf_table);
 
     std::vector<std::string> cpp_options = {
-        "document_root", ".", 
-        "listening_ports",  std::to_string(PORT)
-    };
+        "document_root", ".",
+        "listening_ports", dotenv::getenv("PORT")};
 
-	CivetServer server(cpp_options);
+    CivetServer server(cpp_options);
 
-	server.addHandler("/documents", doc_handler);
+    server.addHandler("/documents", doc_handler);
     server.addHandler("/search", search_handler);
 
     std::cout << "Server running on port 8080...\n";

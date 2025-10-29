@@ -1,81 +1,15 @@
-# --------------------
-# Build Artifacts
-# --------------------
-# Common build output directories
 build/
-bin/
-obj/
-dist/
-target/
-
-# CMake related files
+*.o
+*.exe
+*.log
+*.user
+*.DS_Store
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+commands.txt
+.env
 CMakeCache.txt
 compilation.txt
 test_db
 CMakeFiles/
-CTestTestfile.cmake
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-*.cbp                 # CodeBlocks project files
-*.depend
-*.make
-
-# Common object and executable files
-*.o
-*.out
-*.exe
-*.dll
-*.so
-*.dylib
-*.a
-*.lib
-
-# Temporary files created by the build process
-*~
-
-# --------------------
-# OS and Editor Files
-# --------------------
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
-ehthumbs.db
-*.bak
-$RECYCLE.BIN/
-
-# Linux
-*~
-.#*
-
-# Visual Studio / VS Code
-.vscode/
-*.user
-*.suo
-*.sln
-*.vcxproj
-*.vcxproj.filters
-
-# IDE-specific directories (e.g., CLion, IntelliJ)
-.idea/
-
-# --------------------
-# C++ specific
-# --------------------
-# Precompiled header files
-*.pch
-*.pCH
-
-# Dependency files
-.d
-
-# --------------------
-# Other
-# --------------------
-# Log and data files (if generated during runtime)
-*.log
-*.sqlite
-*.db
