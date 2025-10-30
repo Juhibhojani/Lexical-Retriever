@@ -11,5 +11,5 @@ private:
 public:
     SearchController(DBConnection* db_conn,IDFTable* idf_table);
 
-    bool handlePost(CivetServer* server, struct mg_connection* conn) override;
+    bool handleGet(CivetServer *server, struct mg_connection *conn) override;
 };

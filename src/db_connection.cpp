@@ -1,20 +1,21 @@
 #include "db_connection.h"
 #include <iostream>
 
+using namespace std;
 // https://www.postgresql.org/docs/current/libpq-example.html reference
 
 // implementing the method for connecting to db
-DBConnection::DBConnection(const std::string &db_name,
-                           const std::string &user,
-                           const std::string &password,
-                           const std::string &host,
+DBConnection::DBConnection(const string &db_name,
+                           const string &user,
+                           const string &password,
+                           const string &host,
                            int port)
 {
     connection_str = "dbname=" + db_name +
                      " user=" + user +
                      " password=" + password +
                      " hostaddr=" + host +
-                     " port=" + std::to_string(port); // building the connection string
+                     " port=" + to_string(port); // building the connection string
 
     // connects to db using the string and returns pointer to PGconn object                     
     conn = PQconnectdb(connection_str.c_str());
@@ -22,13 +23,13 @@ DBConnection::DBConnection(const std::string &db_name,
     if (PQstatus(conn) != CONNECTION_OK)
     {
         // the connection has failed and we can't start server unless this is true
-        std::cerr << "Connection failed: " << PQerrorMessage(conn);
+        cerr << "Connection failed: " << PQerrorMessage(conn);
         PQfinish(conn);
         conn = nullptr;
     }
     else
     {
-        std::cout << "Connected to database: " << db_name << std::endl;
+        cout << "Connected to database: " << db_name << endl;
     }
 }
 
@@ -39,7 +40,7 @@ DBConnection::~DBConnection()
     {
         // closes the connection
         PQfinish(conn);
-        std::cout << "Connection closed." << std::endl;
+        cout << "Connection closed." << endl;
     }
 }
 
@@ -48,8 +49,8 @@ bool DBConnection::is_connected() const {
     return conn && PQstatus(conn) == CONNECTION_OK;
 }
 
-
-PGresult* DBConnection::execute_query(const std::string &query) {
+PGresult *DBConnection::execute_query(const string &query)
+{
     // check if connection is active or not
     if (!is_connected()) return nullptr;
 
@@ -57,7 +58,7 @@ PGresult* DBConnection::execute_query(const std::string &query) {
     ExecStatusType status = PQresultStatus(res);
 
     if (status != PGRES_TUPLES_OK && status != PGRES_COMMAND_OK) {
-        std::cerr << "Query failed: " << PQerrorMessage(conn) << std::endl;
+        cerr << "Query failed: " << PQerrorMessage(conn) << endl;
         PQclear(res);
         return nullptr;
     }
@@ -68,19 +69,19 @@ PGresult* DBConnection::execute_query(const std::string &query) {
 // for internal use only
 void DBConnection::test_connection() {
     if (!is_connected()) {
-        std::cerr << "Not connected to DB." << std::endl;
+        cerr << "Not connected to DB." << endl;
         return;
     }
 
     PGresult* res = execute_query("SELECT version();");
     if (!res) {
-        std::cerr << "Failed to execute test query." << std::endl;
+        cerr << "Failed to execute test query." << endl;
         return;
     }
 
     // There should be only one row and one column
     char* version = PQgetvalue(res, 0, 0);
-    std::cout << "PostgreSQL version: " << version << std::endl;
+    cout << "PostgreSQL version: " << version << endl;
 
     PQclear(res);
 }
