@@ -15,7 +15,8 @@ DBConnection::DBConnection(const string &db_name,
                      " user=" + user +
                      " password=" + password +
                      " hostaddr=" + host +
-                     " port=" + to_string(port); // building the connection string
+                     " port=" + to_string(port) +
+                     " sslmode=disable"; // building the connection string
 
     // connects to db using the string and returns pointer to PGconn object                     
     conn = PQconnectdb(connection_str.c_str());
