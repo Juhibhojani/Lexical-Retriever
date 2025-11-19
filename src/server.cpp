@@ -2,7 +2,7 @@
 #include <iostream>
 #include "controller/document_controller.h"
 #include "controller/search_controller.h"
-#include "db_connection.h"
+#include "db/connection_pool.h"
 #include <cstring>
 #include "models/idf_table.h"
 #include "utils/idf_updater.h"
@@ -15,11 +15,19 @@ int main() {
     {
         dotenv::init("../.env");
 
-        // Connecting to database and keeping a single connection instance throughout the application
-        DBConnection db_conn(dotenv::getenv("DATABASE_NAME"), dotenv::getenv("USERNAME"), dotenv::getenv("PASSWORD"));
-        if (!db_conn.is_connected())
+        // Initialize connection pool
+        ConnectionPool *db_pool = nullptr;
+
+        try
         {
-            cerr << "Failed to connect to DB" << endl;
+            cout << dotenv::getenv("CONNECTION_POOL_SIZE") << endl;
+            std::string pool_size_str = dotenv::getenv("CONNECTION_POOL_SIZE");
+            int pool_size = std::stoi(pool_size_str);
+            db_pool = new ConnectionPool(pool_size, dotenv::getenv("DATABASE_NAME"), dotenv::getenv("USERNAME"), dotenv::getenv("PASSWORD"));
+        }
+        catch (const std::exception &e)
+        {
+            cerr << "Failed to create DB connection pool: " << e.what() << endl;
             return 1;
         }
 
@@ -39,9 +47,9 @@ int main() {
         pthread_detach(idf_thread);
 
         // initializing document_handler for handling all incoming requests
-        DocumentController doc_handler(&db_conn);
+        DocumentController doc_handler(db_pool);
 
-        SearchController search_handler(&db_conn, &global_idf_table);
+        SearchController search_handler(db_pool, &global_idf_table);
 
         // can configure number of threads here.
         vector<string> cpp_options = {

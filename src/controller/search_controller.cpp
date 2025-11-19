@@ -1,5 +1,6 @@
 #include "controller/search_controller.h"
 #include "db/document_repository.h"
+#include "db/connection_pool.h"
 #include "db/term_frequency_repository.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -10,8 +11,8 @@ using namespace chrono;
 using json = nlohmann::json;
 
 // constructor to initialize the connection object
-SearchController::SearchController(DBConnection* conn, IDFTable* idf)
-        : db_conn(conn), idf_table(idf) {}
+SearchController::SearchController(ConnectionPool *db_pool, IDFTable *idf)
+    : db_pool(db_pool), idf_table(idf) {}
 
 bool SearchController::handleGet(CivetServer *server, struct mg_connection *conn)
 {
@@ -50,6 +51,16 @@ bool SearchController::handleGet(CivetServer *server, struct mg_connection *conn
 
         cout << "Received query: " << query << endl;
 
+        DBConnection *db_conn = db_pool->acquire();
+        if (!db_conn)
+        {
+            mg_printf(conn,
+                      "HTTP/1.1 500 Internal Server Error\r\n"
+                      "Content-Type: application/json\r\n\r\n"
+                      "{\"error\": \"Database pool unavailable\"}");
+            return true;
+        }
+
         // Initialize repositories and service using our db_conn
         DocumentRepository doc_repo(db_conn);
         TermFrequencyRepository tf_repo(db_conn);
@@ -59,6 +70,9 @@ bool SearchController::handleGet(CivetServer *server, struct mg_connection *conn
         auto start = high_resolution_clock::now();
 
         auto results = search_service.search(query);
+
+        // releasing the object
+        db_pool->release(db_conn);
 
         // Record end time
         auto end = high_resolution_clock::now();

@@ -1,6 +1,7 @@
 #include "controller/document_controller.h"
 #include "db/document_repository.h"
 #include "db/term_frequency_repository.h"
+#include "db/connection_pool.h"
 #include <cstring>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -11,8 +12,8 @@ using json = nlohmann::json;
 using namespace chrono;
 
 // constructor to initialize the connection object
-DocumentController::DocumentController(DBConnection *conn)
-    : db_conn(conn) {}
+DocumentController::DocumentController(ConnectionPool *db_pool)
+    : db_pool(db_pool) {}
 
 // handle POST /documents
 bool DocumentController::handlePost(CivetServer *server, struct mg_connection *conn)
@@ -50,6 +51,18 @@ bool DocumentController::handlePost(CivetServer *server, struct mg_connection *c
 
         cout << "text is : " << text << endl;
 
+        // acquiring connection for handling request
+        DBConnection *db_conn = db_pool->acquire();
+
+        if (!db_conn)
+        {
+            mg_printf(conn,
+                      "HTTP/1.1 500 Internal Server Error\r\n"
+                      "Content-Type: application/json\r\n\r\n"
+                      "{\"error\": \"Database pool unavailable\"}");
+            return true;
+        }
+
         // Initialize repositories and service using our db_conn
         DocumentRepository doc_repo(db_conn);
         TermFrequencyRepository tf_repo(db_conn);
@@ -57,6 +70,10 @@ bool DocumentController::handlePost(CivetServer *server, struct mg_connection *c
 
         // Create document - calling service which will handle business logic
         auto doc_id = service.create_document(text);
+
+        // release db_pool
+        db_pool->release(db_conn);
+
         if (!doc_id)
         {
             mg_printf(conn, "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n");
@@ -105,6 +122,18 @@ bool DocumentController::handleGet(CivetServer* server, mg_connection* conn) {
         // parses the request_uri
         string doc_id = uri.substr(prefix.size());
 
+        // acquiring connection for handling request
+        DBConnection *db_conn = db_pool->acquire();
+
+        if (!db_conn)
+        {
+            mg_printf(conn,
+                      "HTTP/1.1 500 Internal Server Error\r\n"
+                      "Content-Type: application/json\r\n\r\n"
+                      "{\"error\": \"Database pool unavailable\"}");
+            return true;
+        }
+
         // Initialize service
         DocumentRepository doc_repo(db_conn);
         TermFrequencyRepository tf_repo(db_conn);
@@ -114,6 +143,8 @@ bool DocumentController::handleGet(CivetServer* server, mg_connection* conn) {
         auto start = high_resolution_clock::now();
 
         auto doc_opt = service.get_document_by_id(doc_id);
+
+        db_pool->release(db_conn);
 
         // Record end time
         auto end = high_resolution_clock::now();
@@ -176,12 +207,26 @@ bool DocumentController::handleDelete(CivetServer* server, mg_connection* conn) 
     // parses the request_uri
     string doc_id = uri.substr(prefix.size());
 
+    // acquiring connection for handling request
+    DBConnection *db_conn = db_pool->acquire();
+
+    if (!db_conn)
+    {
+        mg_printf(conn,
+                  "HTTP/1.1 500 Internal Server Error\r\n"
+                  "Content-Type: application/json\r\n\r\n"
+                  "{\"error\": \"Database pool unavailable\"}");
+        return true;
+    }
+
     // Initialize service
     DocumentRepository doc_repo(db_conn);
     TermFrequencyRepository tf_repo(db_conn);
     DocumentService service(&doc_repo, &tf_repo, db_conn);
 
     bool success = service.delete_document_by_id(doc_id);
+
+    db_pool->release(db_conn);
 
     cout << "status sent: " << success << endl;
 

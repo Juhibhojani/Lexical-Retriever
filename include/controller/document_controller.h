@@ -1,5 +1,6 @@
 #pragma once
 #include "../service/document_service.h"
+#include "../db/connection_pool.h"
 #include "CivetServer.h"
 #include <string>
 #include <memory>
@@ -7,11 +8,11 @@
 // DocumentController is a subclass of CivetHandler which will implement get and post requests
 class DocumentController : public CivetHandler {
 private:
-    DBConnection* db_conn; // to maintain same connection object
+    ConnectionPool *db_pool; // to maintain same connection object
 
 public:
     // Constructor that takes the DB connection pointer
-    explicit DocumentController(DBConnection* conn);
+    explicit DocumentController(ConnectionPool *dp_pool);
 
     // Handle POST requests for creating a document, done via overriding default method
     bool handlePost(CivetServer* server, struct mg_connection* conn) override;
