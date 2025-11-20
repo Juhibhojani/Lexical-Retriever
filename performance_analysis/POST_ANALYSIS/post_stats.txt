@@ -1,0 +1,82 @@
+Server argument: taskset -c 0-1 ./server 
+
+Experiment 1:
+
+taskset -c 2-4 ./load-generator-2 2 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_2_.log
+
+========== RESULTS ==========
+Number of Threads: 2
+Total requests: 60233
+Throughput: 167 req/sec
+Avg latency: 11.3858 ms
+=============================
+
+Experiment 2:
+
+taskset -c 2-4 ./load-generator-2 4 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_4_.log
+
+========== RESULTS ==========
+Number of Threads: 4
+Total requests: 81030
+Throughput: 225 req/sec
+Avg latency: 17.1858 ms
+=============================
+
+Experiment 3:
+
+taskset -c 2-4 ./load-generator-2 6 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_6_.log
+
+========== RESULTS ==========
+Number of Threads: 6
+Total requests: 88265
+Throughput: 245 req/sec
+Avg latency: 23.8666 ms
+=============================
+
+Experiment 4:
+
+taskset -c 2-4 ./load-generator-2 8 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_8_.log
+
+========== RESULTS ==========
+Number of Threads: 8
+Total requests: 96935
+Throughput: 269 req/sec
+Avg latency: 29.0957 ms
+=============================
+
+Experiment 5:
+
+taskset -c 2-4 ./load-generator-2 10 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_10_.log
+
+========== RESULTS ==========
+Number of Threads: 10
+Total requests: 95289
+Throughput: 264 req/sec
+Avg latency: 37.1511 ms
+=============================
+
+Experiment 6:
+
+taskset -c 2-4 ./load-generator-2 12 360 http://localhost:8080/documents
+
+iostat -x sda 1 > system_log_12_.log
+
+
+========== RESULTS ==========
+Number of Threads: 12
+Total requests: 96999
+Throughput: 269 req/sec
+Avg latency: 43.905 ms
+=============================
+
+

@@ -1,0 +1,92 @@
+GET requests setup
+
+sudo -u postgres psql
+
+GRANT ALL PRIVILEGES ON DATABASE get_db TO newuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO newuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO newuser;
+
+Created new tables
+
+Env config consists of get_db as database pre-populated using below given script
+
+Pre-populate DB:
+
+ ./load_generator 4 60 0 - setup to initialize DB
+
+Running LOAD testing NOW:
+
+taskset -c 0 ./server 
+
+Experiment 1: 
+
+taskset -c 1-4 ./load_generator 2 360 2 
+pidstat -u 1 >> cpu_2.log
+
+
+========= RESULTS =========
+Number of threads: 2
+Total requests made: 208134
+Total requests completed: 208134
+Throughput: 578.15 req/sec
+Avg response time: 3.45819 ms
+===========================
+
+Experiment 2: 
+
+taskset -c 1-4 ./load_generator 4 360 2 
+pidstat -u 1 >> cpu_4.log
+
+========= RESULTS =========
+Number of threads: 4
+Total requests made: 263180
+Total requests completed: 263180
+Throughput: 731.056 req/sec
+Avg response time: 5.47035 ms
+===========================
+
+Experiment 3: 
+
+taskset -c 1-4 ./load_generator 6 360 2 
+pidstat -u 1 >> cpu_6.log
+
+========= RESULTS =========
+Number of threads: 6
+Total requests made: 270521
+Total requests completed: 270521
+Throughput: 751.447 req/sec
+Avg response time: 7.98345 ms
+===========================
+
+Experiment 4: 
+
+taskset -c 1-4 ./load_generator 7 360 2 
+pidstat -u 1 >> cpu_7.log
+
+
+========= RESULTS =========
+Number of threads: 7
+Total requests made: 258083
+Total requests completed: 258083
+Throughput: 716.897 req/sec
+Avg response time: 9.76311 ms
+===========================
+
+
+Experiment 5: 
+
+taskset -c 1-4 ./load_generator 8 360 2 
+pidstat -u 1 >> cpu_8.log
+
+========= RESULTS =========
+Number of threads: 8
+Total requests made: 262757
+Total requests completed: 262757
+Throughput: 729.881 req/sec
+Avg response time: 10.9595 ms
+===========================
+
+
+
+
+
