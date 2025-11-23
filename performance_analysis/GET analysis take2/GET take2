@@ -1,0 +1,130 @@
+GET requests setup
+
+sudo -u postgres psql
+
+GRANT ALL PRIVILEGES ON DATABASE get_db TO newuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO newuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO newuser;
+
+.env configuraton
+PASSWORD=password
+USERNAME=newuser
+PORT=8080
+DATABASE_NAME=get_db
+SLEEP_TIME=1000
+TERM_FREQUENCY_CACHE_SIZE=100 
+DOCUMENT_CACHE_SIZE=100
+CONNECTION_POOL_SIZE=95
+
+Created new tables
+
+Pre-populate DB:
+
+./load_generator 4 60 0 - setup to initialize DB
+ 
+
+Running LOAD testing NOW:
+
+taskset -c 0 ./server 
+
+Experiment 1: 
+
+taskset -c 1-4 ./load_generator 2 360 2 
+pidstat -u 1 >> cpu_2.log
+
+
+========= RESULTS =========
+Number of threads: 2
+Total requests made: 455931
+Total requests completed: 455931
+Throughput: 1266.47 req/sec
+Avg response time: 1.57867 ms
+===========================
+
+Experiment 2: 
+
+taskset -c 1-4 ./load_generator 4 360 2 
+pidstat -u 1 >> cpu_4.log
+
+========= RESULTS =========
+Number of threads: 4
+Total requests made: 524467
+Total requests completed: 524467
+Throughput: 1456.85 req/sec
+Avg response time: 2.74508 ms
+===========================
+
+
+Experiment 3: 
+
+taskset -c 1-4 ./load_generator 6 360 2 
+pidstat -u 1 >> cpu_6.log
+
+========= RESULTS =========
+Number of threads: 6
+Total requests made: 530528
+Total requests completed: 530528
+Throughput: 1473.69 req/sec
+Avg response time: 4.07088 ms
+===========================
+
+
+Experiment 4: 
+
+taskset -c 1-4 ./load_generator 7 360 2 
+pidstat -u 1 >> cpu_7.log
+
+
+========= RESULTS =========
+Number of threads: 7
+Total requests made: 537265
+Total requests completed: 537265
+Throughput: 1492.4 req/sec
+Avg response time: 4.68988 ms
+===========================
+
+Experiment 5: 
+
+taskset -c 1-4 ./load_generator 8 360 2 
+pidstat -u 1 >> cpu_8.log
+
+========= RESULTS =========
+Number of threads: 8
+Total requests made: 546397
+Total requests completed: 546397
+Throughput: 1517.77 req/sec
+Avg response time: 5.27037 ms
+===========================
+
+
+Experiment 6: 
+
+taskset -c 1-4 ./load_generator 10 360 2 
+pidstat -u 1 >> cpu_10.log
+
+========= RESULTS =========
+Number of threads: 10
+Total requests made: 543854
+Total requests completed: 543854
+Throughput: 1510.71 req/sec
+Avg response time: 6.6189 ms
+===========================
+
+Experiment 7: 
+
+taskset -c 1-4 ./load_generator 12 360 2 
+pidstat -u 1 >> cpu_12.log
+
+========= RESULTS =========
+Number of threads: 12
+Total requests made: 544428
+Total requests completed: 544428
+Throughput: 1512.3 req/sec
+Avg response time: 7.8617 ms
+===========================
+
+
+
+
+
+
