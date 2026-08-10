@@ -205,3 +205,7 @@ Statistics as observed during testing.
 ![alt text](./images/image-7.png)
 
 More details at : `performance_analysis/POST analysis/disk_analysis.ipynb`
+
+Link to slides : https://docs.google.com/presentation/d/1IWsS1-Vt2RrVNukBdqSiGJVURmisDc7zDq9EzRmKV-8/edit?slide=id.gc6f9e470d_0_0#slide=id.gc6f9e470d_0_0
+
+
